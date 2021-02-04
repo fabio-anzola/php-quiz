@@ -37,6 +37,26 @@
         die('Connection failed: ' . $error->getMessage());
     }
     ?>
+
+    <form action='<?php echo $_SERVER['PHP_SELF']; ?>' method='POST'>    
+        <label for="subject">Select a Subject:</label>
+        <?php
+        try {
+            $query = 'SELECT * FROM `Subject`';
+            $statement = $db_connection->prepare($query);
+            echo '<select name="subject">';
+            if ($statement->execute()) {
+                while ($row = $statement->fetch()) echo "<option>".$row['subject']."</option>";
+            }
+            echo "</select>";
+        } catch (PDOException $error) {
+            die('Verbindung fehlgeschlagen: ' . $error->getMessage());
+        }
+        ?>
+        <br>
+        <Input type='submit' name='send' value='Start the Quiz!' />
+    </form>
+
     <script src="" async defer></script>
 </body>
 
