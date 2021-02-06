@@ -6,11 +6,7 @@ if (isset($_POST['subject'])) {
 }
 ?>
 <!DOCTYPE html>
-<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
-<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
-<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
-<!--[if gt IE 8]>      <html class="no-js"> <![endif]-->
-<html>
+<html lang="en">
 
 <head>
     <meta charset="utf-8">
@@ -19,6 +15,7 @@ if (isset($_POST['subject'])) {
     <meta name="description" content="A quiz made with php">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
 </head>
 
 <body>
@@ -147,6 +144,9 @@ if (isset($_POST['subject'])) {
     if (isset($_POST['confirmation'])) {
         $selected_subject = $_SESSION['subject'];
 
+        //start div
+        echo "<div>";
+
         $nruseranswers = 0;
         $nranswers = 0;
 
@@ -223,6 +223,9 @@ if (isset($_POST['subject'])) {
                 echo "<br>";
             }
             echo "You got $nruseranswers from $nranswers answers correct! Good job!";
+
+            //end div
+            echo "</div>";
         } catch (PDOException $error) {
             die('Verbindung fehlgeschlagen: ' . $error->getMessage());
         }
@@ -230,6 +233,7 @@ if (isset($_POST['subject'])) {
     ?>
 
     <script src="" async defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
 </body>
 
 </html>
