@@ -38,84 +38,102 @@
     }
     ?>
 
-    <form action='<?php echo $_SERVER['PHP_SELF']; ?>' method='POST'>    
-        <label for="subject">Select a Subject:</label>
-        <?php
-        try {
-            $query = 'SELECT * FROM `Subject`';
-            $statement = $db_connection->prepare($query);
-            echo '<select name="subject">';
-            if ($statement->execute()) {
-                while ($row = $statement->fetch()) echo "<option>".$row['subject']."</option>";
+    <div>
+        <form action='<?php echo $_SERVER['PHP_SELF']; ?>' method='POST'>    
+            <label for="subject">Select a Subject:</label>
+            <?php
+            try {
+                $query = 'SELECT * FROM `Subject`;';
+                $statement = $db_connection->prepare($query);
+                echo '<select name="subject">';
+                if ($statement->execute()) {
+                    while ($row = $statement->fetch()) echo "<option>".$row['subject']."</option>";
+                }
+                echo "</select>";
+            } catch (PDOException $error) {
+                die('Verbindung fehlgeschlagen: ' . $error->getMessage());
             }
-            echo "</select>";
+            ?>
+            <br>
+            <Input type='submit' name='send' value='Start the Quiz!' />
+        </form>
+    </div>
+
+    <?php
+    //Once subject was choosen
+    //Show questions & answers
+    if (isset($_POST['subject'])) {
+        $selected_subject = $_POST['subject'];
+        try {
+            //start from
+            echo "<div>";
+            echo "<form action=\"";
+            echo $_SERVER['PHP_SELF'];
+            echo "\" method=\"POST\">";
+
+            //get nr of questions of subject
+            $query = 'SELECT COUNT(`pk_question_id`) AS "nrofquestions" FROM Question q 
+            INNER JOIN Subject s ON q.fk_pk_subject_id = s.pk_subject_id
+            WHERE s.subject = ?;';
+            $statement = $db_connection->prepare($query);
+            if ($statement->execute([$selected_subject])) {
+                $nrofquestions = $statement->fetch()['nrofquestions'];
+            }
+
+            //iterate through questions
+            for ($i=1; $i <= $nrofquestions; $i++) { 
+                //print question
+                $query = 'SELECT question FROM Question q 
+                INNER JOIN Subject s ON q.fk_pk_subject_id = s.pk_subject_id
+                WHERE s.subject = ? && q.pk_question_id = ?;';
+                $statement = $db_connection->prepare($query);
+                if ($statement->execute([$selected_subject, $i])) {
+                    $row = $statement->fetch();
+                    echo $row['question'] ."<br>";
+                }
+
+                //print all answers for question
+                $query = 'SELECT question, answer FROM Question q 
+                INNER JOIN Subject s ON q.fk_pk_subject_id = s.pk_subject_id
+                INNER JOIN Answer a ON a.fk_pk_question_id = q.pk_question_id 
+                WHERE s.subject = ? && q.pk_question_id = ?;';
+                $statement = $db_connection->prepare($query);
+                if ($statement->execute([$selected_subject, $i])) {
+                    $rownr = 1;
+                    while ($row = $statement->fetch()) {
+                        echo "<input type=\"checkbox\" name=\"question$i.answer$rownr\" value=\"".$row['answer']."\">";
+                        echo "<label for=\"question$i.answer$rownr\">".$row['answer']."</label><br>";
+                        $rownr++;
+                    }
+                }
+                //new line for next question
+                echo "<br>";
+            }
+
+            //confirm button
+            echo "<input type=\"checkbox\" name=\"confirmation\" value=\"I confirm\">";
+            echo "<label for=\"confirmation\">".
+                    "I compeleted this Quiz on my own without any help or materials."."</label><br>";
+
+            //reset and submit button
+            echo "<input type=\"submit\" value=\"Submit\">";
+            echo "<input type=\"reset\" value=\"Reset\">";
+
+            //close form
+            echo "</form>";
+            echo "</div>";
+
         } catch (PDOException $error) {
             die('Verbindung fehlgeschlagen: ' . $error->getMessage());
         }
-        ?>
-        <br>
-        <Input type='submit' name='send' value='Start the Quiz!' />
-    </form>
-
-    <!--Once subject was choosen-->
-    <!--Show questions & answers-->
-    <?php
-    if (!isset($_POST['subject'])) {
-        return;
     }
-    $selected_subject = $_POST['subject'];
-    try {
-        //start from
-        echo "<form action=\"index.php\" method=\"post\">";
+    ?>
 
-        //get nr of questions of subject
-        $query = 'SELECT COUNT(`pk_question_id`) AS "nrofquestions" FROM Question q 
-        INNER JOIN Subject s ON q.fk_pk_subject_id = s.pk_subject_id
-        WHERE s.subject = ?';
-        $statement = $db_connection->prepare($query);
-        if ($statement->execute([$selected_subject])) {
-            $nrofquestions = $statement->fetch()['nrofquestions'];
-        }
-
-        //iterate through questions
-        for ($i=1; $i <= $nrofquestions; $i++) { 
-            //print question
-            $query = 'SELECT question FROM Question q 
-            INNER JOIN Subject s ON q.fk_pk_subject_id = s.pk_subject_id
-            WHERE s.subject = ? && q.pk_question_id = ?';
-            $statement = $db_connection->prepare($query);
-            if ($statement->execute([$selected_subject, $i])) {
-                $row = $statement->fetch();
-                echo $row['question'] ."<br>";
-            }
-
-            //print all answers for question
-            $query = 'SELECT question, answer FROM Question q 
-            INNER JOIN Subject s ON q.fk_pk_subject_id = s.pk_subject_id
-            INNER JOIN Answer a ON a.fk_pk_question_id = q.pk_question_id 
-            WHERE s.subject = ? && q.pk_question_id = ?;';
-            $statement = $db_connection->prepare($query);
-            if ($statement->execute([$selected_subject, $i])) {
-                $rownr = 1;
-                while ($row = $statement->fetch()) {
-                    echo "<input type=\"checkbox\" name=\"question$i.answer$rownr\" value=\"".$row['answer']."\">";
-                    echo "<label for=\"question$i.answer$rownr\">".$row['answer']."</label><br>";
-                    $rownr++;
-                }
-            }
-            //new line for next question
-            echo "<br>";
-        }
-
-        //reset and submit button
-        echo "<input type=\"submit\" value=\"Submit\">";
-        echo "<input type=\"reset\" value=\"Reset\">";
-
-        //close form
-        echo "</form>";
-
-    } catch (PDOException $error) {
-        die('Verbindung fehlgeschlagen: ' . $error->getMessage());
+    <?php
+    //Once answers were submited
+    //Show result
+    if (isset($_POST['confirmation'])) {
+        echo count($_POST);
     }
     ?>
 
