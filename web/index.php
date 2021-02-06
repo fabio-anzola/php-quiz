@@ -1,3 +1,10 @@
+<?php
+// Start the session
+session_start();
+if (isset($_POST['subject'])) {
+    $_SESSION['subject'] = $_POST['subject'];
+}
+?>
 <!DOCTYPE html>
 <!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
 <!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
@@ -39,7 +46,7 @@
     ?>
 
     <div>
-        <form action='<?php echo $_SERVER['PHP_SELF']; ?>' method='POST'>    
+        <form action='<?php echo $_SERVER['PHP_SELF']; ?>' method='POST'>
             <label for="subject">Select a Subject:</label>
             <?php
             try {
@@ -47,7 +54,13 @@
                 $statement = $db_connection->prepare($query);
                 echo '<select name="subject">';
                 if ($statement->execute()) {
-                    while ($row = $statement->fetch()) echo "<option>".$row['subject']."</option>";
+                    while ($row = $statement->fetch()) {
+                        if ($_SESSION['subject'] == $row['subject']) {
+                            echo "<option selected>" . $row['subject'] . "</option>";
+                        } else {
+                            echo "<option>" . $row['subject'] . "</option>";
+                        }
+                    }
                 }
                 echo "</select>";
             } catch (PDOException $error) {
@@ -63,7 +76,7 @@
     //Once subject was choosen
     //Show questions & answers
     if (isset($_POST['subject'])) {
-        $selected_subject = $_POST['subject'];
+        $selected_subject = $_SESSION['subject'];
         try {
             //start from
             echo "<div>";
@@ -81,7 +94,7 @@
             }
 
             //iterate through questions
-            for ($i=1; $i <= $nrofquestions; $i++) { 
+            for ($i = 1; $i <= $nrofquestions; $i++) {
                 //print question
                 $query = 'SELECT question FROM Question q 
                 INNER JOIN Subject s ON q.fk_pk_subject_id = s.pk_subject_id
@@ -89,7 +102,7 @@
                 $statement = $db_connection->prepare($query);
                 if ($statement->execute([$selected_subject, $i])) {
                     $row = $statement->fetch();
-                    echo $row['question'] ."<br>";
+                    echo $row['question'] . "<br>";
                 }
 
                 //print all answers for question
@@ -101,8 +114,8 @@
                 if ($statement->execute([$selected_subject, $i])) {
                     $rownr = 1;
                     while ($row = $statement->fetch()) {
-                        echo "<input type=\"checkbox\" name=\"question$i.answer$rownr\" value=\"".$row['answer']."\">";
-                        echo "<label for=\"question$i.answer$rownr\">".$row['answer']."</label><br>";
+                        echo "<input type=\"checkbox\" name=\"question$i&answer$rownr\" value=\"" . $row['answer'] . "\">";
+                        echo "<label for=\"question$i.answer$rownr\">" . $row['answer'] . "</label><br>";
                         $rownr++;
                     }
                 }
@@ -112,8 +125,8 @@
 
             //confirm button
             echo "<input type=\"checkbox\" name=\"confirmation\" value=\"I confirm\">";
-            echo "<label for=\"confirmation\">".
-                    "I compeleted this Quiz on my own without any help or materials."."</label><br>";
+            echo "<label for=\"confirmation\">" .
+                "I compeleted this Quiz on my own without any help or materials." . "</label><br>";
 
             //reset and submit button
             echo "<input type=\"submit\" value=\"Submit\">";
@@ -122,7 +135,6 @@
             //close form
             echo "</form>";
             echo "</div>";
-
         } catch (PDOException $error) {
             die('Verbindung fehlgeschlagen: ' . $error->getMessage());
         }
@@ -133,7 +145,87 @@
     //Once answers were submited
     //Show result
     if (isset($_POST['confirmation'])) {
-        echo count($_POST);
+        $selected_subject = $_SESSION['subject'];
+
+        $nruseranswers = 0;
+        $nranswers = 0;
+
+        try {
+            //get nr of correct answers
+            $query = 'SELECT COUNT(a.pk_answer_id) AS "nranswers" FROM Question q
+            INNER JOIN Subject s ON q.fk_pk_subject_id = s.pk_subject_id
+            INNER JOIN Answer a ON a.fk_pk_question_id = q.pk_question_id 
+            WHERE s.subject = ?;';
+            $statement = $db_connection->prepare($query);
+            if ($statement->execute([$selected_subject])) {
+                $nranswers = $statement->fetch()['nranswers'];
+            }
+  
+            //get nr of questions of subject
+            $query = 'SELECT COUNT(`pk_question_id`) AS "nrofquestions" FROM Question q 
+            INNER JOIN Subject s ON q.fk_pk_subject_id = s.pk_subject_id
+            WHERE s.subject = ?;';
+            $statement = $db_connection->prepare($query);
+            if ($statement->execute([$selected_subject])) {
+                $nrofquestions = $statement->fetch()['nrofquestions'];
+            }
+
+            //iterate through questions
+            for ($i = 1; $i <= $nrofquestions; $i++) {
+                //print question
+                $query = 'SELECT question FROM Question q 
+                INNER JOIN Subject s ON q.fk_pk_subject_id = s.pk_subject_id
+                WHERE s.subject = ? && q.pk_question_id = ?;';
+                $statement = $db_connection->prepare($query);
+                if ($statement->execute([$selected_subject, $i])) {
+                    $row = $statement->fetch();
+                    echo $row['question'] . "<br>";
+                }
+
+                //print all answers for question
+                $query = 'SELECT question, answer, correct FROM Question q 
+                INNER JOIN Subject s ON q.fk_pk_subject_id = s.pk_subject_id
+                INNER JOIN Answer a ON a.fk_pk_question_id = q.pk_question_id 
+                WHERE s.subject = ? && q.pk_question_id = ?;';
+                $statement = $db_connection->prepare($query);
+                if ($statement->execute([$selected_subject, $i])) {
+                    $rownr = 1;
+                    while ($row = $statement->fetch()) {
+                        if (array_key_exists("question$i&answer$rownr", $_POST)) {
+                            //user ticked and is correct -> good
+                            if ($row['correct']) {
+                                $nruseranswers++;
+                                echo "<input disabled checked class=\"correct\" type=\"checkbox\" name=\"question$i.answer$rownr\" value=\"" . $row['answer'] . "\">";
+                                echo "<label class=\"correct\" for=\"question$i.answer$rownr\">" . $row['answer'] . "</label><br>";
+                            }
+                            //user ticked but is wrong -> bad
+                            else {
+                                echo "<input disabled checked class=\"wrong\" type=\"checkbox\" name=\"question$i.answer$rownr\" value=\"" . $row['answer'] . "\">";
+                                echo "<label class=\"wrong\" for=\"question$i.answer$rownr\">" . $row['answer'] . "</label><br>";
+                            }
+                        } else {
+                            //user did not tick but is correct -> bad
+                            if ($row['correct']) {
+                                echo "<input disabled class=\"wrong\" type=\"checkbox\" name=\"question$i.answer$rownr\" value=\"" . $row['answer'] . "\">";
+                                echo "<label class=\"wrong\" for=\"question$i.answer$rownr\">" . $row['answer'] . "</label><br>";
+                            }
+                            //user did not tick and is wrong -> good
+                            else {
+                                $nruseranswers++;
+                                echo "<input disabled class=\"correct\" type=\"checkbox\" name=\"question$i.answer$rownr\" value=\"" . $row['answer'] . "\">";
+                                echo "<label class=\"correct\" for=\"question$i.answer$rownr\">" . $row['answer'] . "</label><br>";
+                            }
+                        }
+                        $rownr++;
+                    }
+                }
+                //new line for next question
+                echo "<br>";
+            }
+            echo "You got $nruseranswers from $nranswers answers correct! Good job!";
+        } catch (PDOException $error) {
+            die('Verbindung fehlgeschlagen: ' . $error->getMessage());
+        }
     }
     ?>
 
