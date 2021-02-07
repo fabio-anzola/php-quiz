@@ -47,8 +47,17 @@ if (isset($_POST['uname']) && isset($_POST['psw'])) {
     ?>
 
     <?php
+    if (isset($_POST['removesubject'])) {
+        $query = 'DELETE FROM Subject WHERE `subject` = ?;';
+                $statement = $db_connection->prepare($query);
+                if ($statement->execute([$_POST['subject']])) {
+                    
+                }
+    }
+    ?>
+
+    <?php
     if (!isset($_SESSION['uname']) && !isset($_SESSION['psw'])) {
-        print_r($_SESSION);
         echo '<div>';
         echo '<form action=';
         echo $_SERVER['PHP_SELF'];
@@ -95,6 +104,7 @@ if (isset($_POST['uname']) && isset($_POST['psw'])) {
         $statement = $db_connection->prepare($query);
         if ($statement->execute([$_SESSION['uname'], $_SESSION['psw']])) {
             $row = $statement->fetch();
+            //
             if (!isset($row['pk_user_id'])) {
                 session_unset();
                 $_SESSION['wrongcreds'] = TRUE;
@@ -109,6 +119,37 @@ if (isset($_POST['uname']) && isset($_POST['psw'])) {
                 echo '<h1>Adminpanel</h1>';
                 echo '<img src="https://eu.ui-avatars.com/api/?background=random&name=' . $_SESSION['uname'] . '" alt="Avatar" class="smallavatar">';
                 echo '</div>';
+
+                echo "<div>";
+                echo "Subjects: <br>";
+                echo "<div>";
+                echo "<form action=\"";
+                echo $_SERVER['PHP_SELF'];
+                echo "\" method=\"POST\">";
+                try {
+                    $query = 'SELECT * FROM `Subject`;';
+                    $statement = $db_connection->prepare($query);
+                    echo '<select name="subject">';
+                    if ($statement->execute()) {
+                        while ($row = $statement->fetch()) {
+                            if ($_SESSION['subject'] == $row['subject']) {
+                                echo "<option selected>" . $row['subject'] . "</option>";
+                            } else {
+                                echo "<option>" . $row['subject'] . "</option>";
+                            }
+                        }
+                    }
+                    echo "</select>";
+                } catch (PDOException $error) {
+                    die('Verbindung fehlgeschlagen: ' . $error->getMessage());
+                }
+                echo "<input type=\"submit\" name=\"removesubject\" value=\"Remove\">";
+                echo "</form>";
+
+
+
+
+                echo "</div>";
             }
         }
     }
