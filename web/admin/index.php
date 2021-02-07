@@ -1,6 +1,10 @@
 <?php
 // Start the session
 session_start();
+if (isset($_POST['logout'])) {
+    session_unset();
+    session_destroy();
+}
 if (isset($_POST['uname']) && isset($_POST['psw'])) {
     $_SESSION['uname'] = $_POST['uname'];
     $_SESSION['psw'] = $_POST['psw'];
@@ -20,8 +24,6 @@ if (isset($_POST['uname']) && isset($_POST['psw'])) {
 </head>
 
 <body>
-    <h1> Anzola - Quiz </h1>
-    <h2>Welcome to the Admin panel</h2>
 
     <?php
     # Load variables
@@ -45,11 +47,12 @@ if (isset($_POST['uname']) && isset($_POST['psw'])) {
     ?>
 
     <?php
-    if(!isset($_SESSION['uname']) && !isset($_SESSION['psw'])) {
+    if (!isset($_SESSION['uname']) && !isset($_SESSION['psw'])) {
+        print_r($_SESSION);
         echo '<div>';
         echo '<form action=';
         echo $_SERVER['PHP_SELF'];
-        echo ' method="POST">';
+        echo ' method="POST" class="login">';
 
         echo '<div class="imgcontainer">';
         echo '<img src="https://eu.ui-avatars.com/api/?name=?" alt="Avatar" class="avatar">';
@@ -61,6 +64,10 @@ if (isset($_POST['uname']) && isset($_POST['psw'])) {
 
         echo '<label for="psw"><b>Password</b></label>';
         echo '<input type="password" placeholder="Enter Password" name="psw" required>';
+
+        if (isset($_SESSION['wrongcreds'])) {
+            echo '<p style="color:red">Wrong credentials!</p>';
+        }
 
         echo '<button type="submit">Login</button>';
 
@@ -81,15 +88,31 @@ if (isset($_POST['uname']) && isset($_POST['psw'])) {
     ?>
 
     <?php
-    if(isset($_SESSION['uname']) && isset($_SESSION['psw'])) {
+    if (isset($_SESSION['uname']) && isset($_SESSION['psw'])) {
         $query = 'SELECT * FROM `User` u 
         WHERE u.username = ? 
         AND u.passphrase = MD5(?);';
-                $statement = $db_connection->prepare($query);
-                if ($statement->execute([$_SESSION['uname'], $_SESSION['psw']])) {
-                    $row = $statement->fetch();
-                    echo "Hallo ".$row['firstname'];
-                }
+        $statement = $db_connection->prepare($query);
+        if ($statement->execute([$_SESSION['uname'], $_SESSION['psw']])) {
+            $row = $statement->fetch();
+            if (!isset($row['pk_user_id'])) {
+                session_unset();
+                $_SESSION['wrongcreds'] = TRUE;
+                echo '<script>parent.window.location.reload(true);</script>';
+            } else {
+                echo '<div class="navbar">';
+                echo '<form action=';
+                echo $_SERVER['PHP_SELF'];
+                echo ' method="POST">';
+                echo '<button type="submit" name="logout" value="logmeout">Logout</button>';
+                echo '</form>';
+
+                echo '<img src="https://eu.ui-avatars.com/api/?background=random&name=' . $_SESSION['uname'] . '" alt="Avatar" class="smallavatar">';
+                echo '</div>';
+
+                echo "Welcome " . $row['firstname'];
+            }
+        }
     }
     ?>
 
