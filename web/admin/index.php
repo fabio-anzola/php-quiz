@@ -106,11 +106,9 @@ if (isset($_POST['uname']) && isset($_POST['psw'])) {
                 echo ' method="POST">';
                 echo '<button type="submit" name="logout" value="logmeout">Logout</button>';
                 echo '</form>';
-
+                echo '<h1>Adminpanel</h1>';
                 echo '<img src="https://eu.ui-avatars.com/api/?background=random&name=' . $_SESSION['uname'] . '" alt="Avatar" class="smallavatar">';
                 echo '</div>';
-
-                echo "Welcome " . $row['firstname'];
             }
         }
     }

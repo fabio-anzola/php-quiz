@@ -1,4 +1,7 @@
-/* Bordered form */
+h1 {
+    text-align: center;
+}
+
 form.login {
     border: 3px solid #f1f1f1;
 }
