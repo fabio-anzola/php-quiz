@@ -62,6 +62,13 @@ if (isset($_POST['uname']) && isset($_POST['psw'])) {
                     
                 }
     }
+    if (isset($_POST['editsubject'])) {
+        $query = 'UPDATE `Subject` SET `subject` = ? WHERE `subject` = ?;';
+                $statement = $db_connection->prepare($query);
+                if ($statement->execute([$_POST['new_subject'], $_POST['old_subject']])) {
+                    
+                }
+    }
     ?>
 
     <?php
@@ -159,6 +166,31 @@ if (isset($_POST['uname']) && isset($_POST['psw'])) {
                 echo "\" method=\"POST\">";
                 echo '<input type="text" placeholder="Enter Subject name" name="subject">';
                 echo "<input type=\"submit\" name=\"addsubject\" value=\"Add\">";
+                echo "</form>";
+                echo "</div>";
+
+                echo "<form action=\"";
+                echo $_SERVER['PHP_SELF'];
+                echo "\" method=\"POST\">";
+                try {
+                    $query = 'SELECT * FROM `Subject`;';
+                    $statement = $db_connection->prepare($query);
+                    echo '<select name="old_subject">';
+                    if ($statement->execute()) {
+                        while ($row = $statement->fetch()) {
+                            if ($_SESSION['subject'] == $row['subject']) {
+                                echo "<option selected>" . $row['subject'] . "</option>";
+                            } else {
+                                echo "<option>" . $row['subject'] . "</option>";
+                            }
+                        }
+                    }
+                    echo "</select>";
+                } catch (PDOException $error) {
+                    die('Verbindung fehlgeschlagen: ' . $error->getMessage());
+                }    
+                echo '<input type="text" placeholder="Enter the new name" name="new_subject">';
+                echo "<input type=\"submit\" name=\"editsubject\" value=\"Rename\">";
                 echo "</form>";
                 echo "</div>";
             }
