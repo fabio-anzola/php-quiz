@@ -19,6 +19,7 @@ if (isset($_POST['uname']) && isset($_POST['psw'])) {
     <title>Quiz with PHP</title>
     <meta name="description" content="A quiz made with php">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="login.css">
     <link rel="stylesheet" href="style.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
 </head>
@@ -49,6 +50,13 @@ if (isset($_POST['uname']) && isset($_POST['psw'])) {
     <?php
     if (isset($_POST['removesubject'])) {
         $query = 'DELETE FROM Subject WHERE `subject` = ?;';
+                $statement = $db_connection->prepare($query);
+                if ($statement->execute([$_POST['subject']])) {
+                    
+                }
+    }
+    if (isset($_POST['addsubject'])) {
+        $query = 'INSERT INTO `Subject`(`subject`) VALUES (?);';
                 $statement = $db_connection->prepare($query);
                 if ($statement->execute([$_POST['subject']])) {
                     
@@ -146,9 +154,12 @@ if (isset($_POST['uname']) && isset($_POST['psw'])) {
                 echo "<input type=\"submit\" name=\"removesubject\" value=\"Remove\">";
                 echo "</form>";
 
-
-
-
+                echo "<form action=\"";
+                echo $_SERVER['PHP_SELF'];
+                echo "\" method=\"POST\">";
+                echo '<input type="text" placeholder="Enter Subject name" name="subject">';
+                echo "<input type=\"submit\" name=\"addsubject\" value=\"Add\">";
+                echo "</form>";
                 echo "</div>";
             }
         }
