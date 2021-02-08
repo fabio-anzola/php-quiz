@@ -90,14 +90,27 @@ if (isset($_POST['subject'])) {
                 $nrofquestions = $statement->fetch()['nrofquestions'];
             }
 
+            //get pk of questions of subject
+            $query = 'SELECT `pk_question_id` FROM Question q 
+            INNER JOIN Subject s ON q.fk_pk_subject_id = s.pk_subject_id
+            WHERE s.subject = ?;';
+            $statement = $db_connection->prepare($query);
+            if ($statement->execute([$selected_subject])) {
+                $nrrow = 0;
+                while ($row = $statement->fetch()) {
+                    $pks[$nrrow] = $row['pk_question_id'];
+                    $nrrow++;
+                }
+            }
+
             //iterate through questions
-            for ($i = 1; $i <= $nrofquestions; $i++) {
+            for ($i = 0; $i < $nrofquestions; $i++) {
                 //print question
                 $query = 'SELECT question FROM Question q 
                 INNER JOIN Subject s ON q.fk_pk_subject_id = s.pk_subject_id
                 WHERE s.subject = ? && q.pk_question_id = ?;';
                 $statement = $db_connection->prepare($query);
-                if ($statement->execute([$selected_subject, $i])) {
+                if ($statement->execute([$selected_subject, $pks[$i]])) {
                     $row = $statement->fetch();
                     echo $row['question'] . "<br>";
                 }
@@ -108,11 +121,11 @@ if (isset($_POST['subject'])) {
                 INNER JOIN Answer a ON a.fk_pk_question_id = q.pk_question_id 
                 WHERE s.subject = ? && q.pk_question_id = ?;';
                 $statement = $db_connection->prepare($query);
-                if ($statement->execute([$selected_subject, $i])) {
+                if ($statement->execute([$selected_subject, $pks[$i]])) {
                     $rownr = 1;
                     while ($row = $statement->fetch()) {
                         echo "<input type=\"checkbox\" name=\"question$i&answer$rownr\" value=\"" . $row['answer'] . "\">";
-                        echo "<label for=\"question$i.answer$rownr\">" . $row['answer'] . "</label><br>";
+                        echo "<label for=\"question$i&answer$rownr\">" . $row['answer'] . "</label><br>";
                         $rownr++;
                     }
                 }
@@ -170,14 +183,27 @@ if (isset($_POST['subject'])) {
                 $nrofquestions = $statement->fetch()['nrofquestions'];
             }
 
+            //get pk of questions of subject
+            $query = 'SELECT `pk_question_id` FROM Question q 
+            INNER JOIN Subject s ON q.fk_pk_subject_id = s.pk_subject_id
+            WHERE s.subject = ?;';
+            $statement = $db_connection->prepare($query);
+            if ($statement->execute([$selected_subject])) {
+                $nrrow = 0;
+                while ($row = $statement->fetch()) {
+                    $pks[$nrrow] = $row['pk_question_id'];
+                    $nrrow++;
+                }
+            }
+
             //iterate through questions
-            for ($i = 1; $i <= $nrofquestions; $i++) {
+            for ($i = 0; $i < $nrofquestions; $i++) {
                 //print question
                 $query = 'SELECT question FROM Question q 
                 INNER JOIN Subject s ON q.fk_pk_subject_id = s.pk_subject_id
                 WHERE s.subject = ? && q.pk_question_id = ?;';
                 $statement = $db_connection->prepare($query);
-                if ($statement->execute([$selected_subject, $i])) {
+                if ($statement->execute([$selected_subject, $pks[$i]])) {
                     $row = $statement->fetch();
                     echo $row['question'] . "<br>";
                 }
@@ -188,7 +214,7 @@ if (isset($_POST['subject'])) {
                 INNER JOIN Answer a ON a.fk_pk_question_id = q.pk_question_id 
                 WHERE s.subject = ? && q.pk_question_id = ?;';
                 $statement = $db_connection->prepare($query);
-                if ($statement->execute([$selected_subject, $i])) {
+                if ($statement->execute([$selected_subject, $pks[$i]])) {
                     $rownr = 1;
                     while ($row = $statement->fetch()) {
                         if (array_key_exists("question$i&answer$rownr", $_POST)) {

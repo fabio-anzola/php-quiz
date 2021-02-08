@@ -9,6 +9,9 @@ if (isset($_POST['uname']) && isset($_POST['psw'])) {
     $_SESSION['uname'] = $_POST['uname'];
     $_SESSION['psw'] = $_POST['psw'];
 }
+if (isset($_POST['choosesubject'])) {
+    $_SESSION['subject'] = $_POST['subject'];
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -56,17 +59,52 @@ if (isset($_POST['uname']) && isset($_POST['psw'])) {
                 }
     }
     if (isset($_POST['addsubject'])) {
-        $query = 'INSERT INTO `Subject`(`subject`) VALUES (?);';
+        $query = 'INSERT INTO Subject (`subject`) VALUES (?);';
                 $statement = $db_connection->prepare($query);
                 if ($statement->execute([$_POST['subject']])) {
                     
                 }
     }
     if (isset($_POST['editsubject'])) {
-        $query = 'UPDATE `Subject` SET `subject` = ? WHERE `subject` = ?;';
+        $query = 'UPDATE Subject SET `subject` = ? WHERE `subject` = ?;';
                 $statement = $db_connection->prepare($query);
                 if ($statement->execute([$_POST['new_subject'], $_POST['old_subject']])) {
                     
+                }
+    }
+    if (isset($_POST['removequestion'])) {
+        $query = 'DELETE FROM Question WHERE `question` = ?;';
+                $statement = $db_connection->prepare($query);
+                if ($statement->execute([$_POST['question']])) {
+                    
+                }
+    }
+    if (isset($_POST['addquestion'])) {
+        $query = 'SELECT `pk_subject_id` FROM Subject WHERE `subject` = ?;';
+                $statement = $db_connection->prepare($query);
+                if ($statement->execute([$_SESSION['subject']])) {
+                    $row = $statement->fetch();
+                    $pk_subject_id = $row['pk_subject_id'];
+                }
+        $query = 'INSERT INTO Question (`question`, `fk_pk_subject_id`) VALUES (?, ?);';
+                $statement = $db_connection->prepare($query);
+                if ($statement->execute([$_POST['question'], $pk_subject_id])) {
+                    
+                }
+        $query = 'SELECT `pk_question_id` FROM Question WHERE `question` = ?;';
+                $statement = $db_connection->prepare($query);
+                if ($statement->execute([$_POST['question']])) {
+                    $row = $statement->fetch();
+                    $pk_question_id = $row['pk_question_id'];
+                }
+        $query = 'INSERT INTO Answer (`answer`, `correct`, `fk_pk_question_id`) VALUES (?, ?, ?), (?, ?, ?), (?, ?, ?), (?, ?, ?);';
+                $statement = $db_connection->prepare($query);
+                if ($statement->execute([
+                    $_POST['answer1'], (isset($_POST['ans1']) ? 1 : 0), $pk_question_id,
+                    $_POST['answer2'], (isset($_POST['ans2']) ? 1 : 0), $pk_question_id,
+                    $_POST['answer3'], (isset($_POST['ans3']) ? 1 : 0), $pk_question_id,
+                    $_POST['answer4'], (isset($_POST['ans4']) ? 1 : 0), $pk_question_id])) {
+
                 }
     }
     ?>
@@ -135,8 +173,73 @@ if (isset($_POST['uname']) && isset($_POST['psw'])) {
                 echo '<img src="https://eu.ui-avatars.com/api/?background=random&name=' . $_SESSION['uname'] . '" alt="Avatar" class="smallavatar">';
                 echo '</div>';
 
+                //Subject Div
                 echo "<div>";
                 echo "Subjects: <br>";
+
+                //Remove subject
+                echo "<div>";
+                echo "<form action=\"";
+                echo $_SERVER['PHP_SELF'];
+                echo "\" method=\"POST\">";
+                try {
+                    $query = 'SELECT * FROM `Subject`;';
+                    $statement = $db_connection->prepare($query);
+                    echo '<select name="subject">';
+                    if ($statement->execute()) {
+                        while ($row = $statement->fetch()) {
+                            echo "<option>" . $row['subject'] . "</option>";
+                        }
+                    }
+                    echo "</select>";
+                } catch (PDOException $error) {
+                    die('Verbindung fehlgeschlagen: ' . $error->getMessage());
+                }
+                echo "<input type=\"submit\" name=\"removesubject\" value=\"Remove\">";
+                echo "</form>";
+                echo "</div>";
+
+                //Add subject
+                echo "<div>";
+                echo "<form action=\"";
+                echo $_SERVER['PHP_SELF'];
+                echo "\" method=\"POST\">";
+                echo '<input type="text" placeholder="Enter Subject name" name="subject">';
+                echo "<input type=\"submit\" name=\"addsubject\" value=\"Add\">";
+                echo "</form>";
+                echo "</div>";
+
+                //Rename subject
+                echo "<div>";
+                echo "<form action=\"";
+                echo $_SERVER['PHP_SELF'];
+                echo "\" method=\"POST\">";
+                try {
+                    $query = 'SELECT * FROM `Subject`;';
+                    $statement = $db_connection->prepare($query);
+                    echo '<select name="old_subject">';
+                    if ($statement->execute()) {
+                        while ($row = $statement->fetch()) {
+                            echo "<option>" . $row['subject'] . "</option>";
+                        }
+                    }
+                    echo "</select>";
+                } catch (PDOException $error) {
+                    die('Verbindung fehlgeschlagen: ' . $error->getMessage());
+                }    
+                echo '<input type="text" placeholder="Enter the new name" name="new_subject">';
+                echo "<input type=\"submit\" name=\"editsubject\" value=\"Rename\">";
+                echo "</form>";
+                echo "</div>";
+
+                //Close subject
+                echo "</div>";
+
+                //Questions Answers Section
+                echo "<div>";
+                echo "Questions & Answers: <br>";
+
+                //choose subject
                 echo "<div>";
                 echo "<form action=\"";
                 echo $_SERVER['PHP_SELF'];
@@ -158,40 +261,63 @@ if (isset($_POST['uname']) && isset($_POST['psw'])) {
                 } catch (PDOException $error) {
                     die('Verbindung fehlgeschlagen: ' . $error->getMessage());
                 }
-                echo "<input type=\"submit\" name=\"removesubject\" value=\"Remove\">";
-                echo "</form>";
-
-                echo "<form action=\"";
-                echo $_SERVER['PHP_SELF'];
-                echo "\" method=\"POST\">";
-                echo '<input type="text" placeholder="Enter Subject name" name="subject">';
-                echo "<input type=\"submit\" name=\"addsubject\" value=\"Add\">";
+                echo "<input type=\"submit\" name=\"choosesubject\" value=\"Select\">";
                 echo "</form>";
                 echo "</div>";
 
-                echo "<form action=\"";
-                echo $_SERVER['PHP_SELF'];
-                echo "\" method=\"POST\">";
-                try {
-                    $query = 'SELECT * FROM `Subject`;';
-                    $statement = $db_connection->prepare($query);
-                    echo '<select name="old_subject">';
-                    if ($statement->execute()) {
-                        while ($row = $statement->fetch()) {
-                            if ($_SESSION['subject'] == $row['subject']) {
-                                echo "<option selected>" . $row['subject'] . "</option>";
-                            } else {
-                                echo "<option>" . $row['subject'] . "</option>";
+                //subject is choosen
+                if (isset($_SESSION['subject'])) {
+                    //delete question
+                    echo "<div>";
+                    echo "<form action=\"";
+                    echo $_SERVER['PHP_SELF'];
+                    echo "\" method=\"POST\">";
+                    try {
+                        $query = 'SELECT * FROM Subject s 
+                        INNER JOIN Question q ON q.fk_pk_subject_id = s.pk_subject_id
+                        WHERE `subject` = ?;';
+                        $statement = $db_connection->prepare($query);
+                        echo '<select name="question">';
+                        if ($statement->execute([$_SESSION['subject']])) {
+                            while ($row = $statement->fetch()) {
+                                echo "<option>" . $row['question'] . "</option>";
                             }
                         }
+                        echo "</select>";
+                        echo "<input type=\"submit\" name=\"removequestion\" value=\"Remove\">";
+                    } catch (PDOException $error) {
+                        die('Verbindung fehlgeschlagen: ' . $error->getMessage());
                     }
-                    echo "</select>";
-                } catch (PDOException $error) {
-                    die('Verbindung fehlgeschlagen: ' . $error->getMessage());
-                }    
-                echo '<input type="text" placeholder="Enter the new name" name="new_subject">';
-                echo "<input type=\"submit\" name=\"editsubject\" value=\"Rename\">";
-                echo "</form>";
+                    echo "</form>";
+                    echo "<div>";
+
+                    //create question
+                    echo "<div>";
+                    echo "<form action=\"";
+                    echo $_SERVER['PHP_SELF'];
+                    echo "\" method=\"POST\">";
+                    echo '<input type="text" placeholder="Enter question here" name="question">';
+                    echo "<br>";
+                    echo '<input type="text" placeholder="Enter answer here" name="answer1">';
+                    echo "<input type=\"checkbox\" name=\"ans1\" value=\"correct\">";
+                    echo "<br>";
+                    echo '<input type="text" placeholder="Enter answer here" name="answer2">';
+                    echo "<input type=\"checkbox\" name=\"ans2\" value=\"correct\">";
+                    echo "<br>";
+                    echo '<input type="text" placeholder="Enter answer here" name="answer3">';
+                    echo "<input type=\"checkbox\" name=\"ans3\" value=\"correct\">";
+                    echo "<br>";
+                    echo '<input type="text" placeholder="Enter answer here" name="answer4">';
+                    echo "<input type=\"checkbox\" name=\"ans4\" value=\"correct\">";
+                    echo "<br>";
+                    echo "<input type=\"submit\" name=\"addquestion\" value=\"Add\">";
+                    echo "</form>";
+                    echo "<div>";
+
+
+                }
+
+                //Close Questions Answers
                 echo "</div>";
             }
         }
