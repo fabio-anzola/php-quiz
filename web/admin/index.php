@@ -38,9 +38,15 @@ if (isset($_POST['choosesubject'])) {
                 }
     }
     if (isset($_POST['addsubject'])) {
-        $query = 'INSERT INTO Subject (`subject`) VALUES (?);';
+        $query = 'SELECT `pk_subject_id` FROM Subject WHERE `subject` = ?;';
                 $statement = $db_connection->prepare($query);
-                if ($statement->execute([$_POST['subject']])) {
+                if ($statement->execute([$_POST['parent']])) {
+                    $row = $statement->fetch();
+                    $pk_subject_id = $row['pk_subject_id'];
+                }
+        $query = 'INSERT INTO Subject (`subject`, `fk_pk_subject_id`) VALUES (?, ?);';
+                $statement = $db_connection->prepare($query);
+                if ($statement->execute([$_POST['subject'], $pk_subject_id])) {
                     
                 }
     }
@@ -203,6 +209,20 @@ if (isset($_POST['choosesubject'])) {
                 echo "<form action=\"";
                 echo $_SERVER['PHP_SELF'];
                 echo "\" method=\"POST\">";
+                try {
+                    $query = 'SELECT * FROM `Subject`;';
+                    $statement = $db_connection->prepare($query);
+                    echo '<select name="parent">';
+                    echo '<option> No parent (NULL) </option>';
+                    if ($statement->execute()) {
+                        while ($row = $statement->fetch()) {
+                            echo "<option>" . $row['subject'] . "</option>";
+                        }
+                    }
+                    echo "</select>";
+                } catch (PDOException $error) {
+                    die('Verbindung fehlgeschlagen: ' . $error->getMessage());
+                }
                 echo '<input type="text" placeholder="Enter Subject name" name="subject">';
                 echo "<input type=\"submit\" name=\"addsubject\" value=\"Add\">";
                 echo "</form>";
