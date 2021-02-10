@@ -86,6 +86,25 @@ if (isset($_POST['choosesubject'])) {
 
                 }
     }
+    if (isset($_POST['movequestion'])) {
+        $query = 'SELECT `pk_subject_id` FROM Subject WHERE `subject` = ?;';
+                $statement = $db_connection->prepare($query);
+                if ($statement->execute([$_POST['new_subject']])) {
+                    $row = $statement->fetch();
+                    $new_pk_subject_id = $row['pk_subject_id'];
+                }
+        $query = 'SELECT `pk_question_id` FROM Question WHERE `question` = ?;';
+                $statement = $db_connection->prepare($query);
+                if ($statement->execute([$_POST['question']])) {
+                    $row = $statement->fetch();
+                    $pk_question_id = $row['pk_question_id'];
+                }
+        $query = 'UPDATE Question SET `fk_pk_subject_id` = ? WHERE `pk_question_id` = ?;';
+                $statement = $db_connection->prepare($query);
+                if ($statement->execute([$new_pk_subject_id, $pk_question_id])) {
+                    
+                }
+    }
     ?>
 
     <?php
@@ -96,6 +115,7 @@ if (isset($_POST['choosesubject'])) {
         echo ' method="POST" class="login">';
 
         echo '<div class="imgcontainer">';
+        // https://eu.ui-avatars.com
         echo '<img src="https://eu.ui-avatars.com/api/?name=?" alt="Avatar" class="avatar">';
         echo '</div>';
 
@@ -246,6 +266,7 @@ if (isset($_POST['choosesubject'])) {
 
                 //subject is choosen
                 if (isset($_SESSION['subject'])) {
+
                     //delete question
                     echo "<div>";
                     echo "<form action=\"";
@@ -291,7 +312,50 @@ if (isset($_POST['choosesubject'])) {
                     echo "<br>";
                     echo "<input type=\"submit\" name=\"addquestion\" value=\"Add\">";
                     echo "</form>";
+                    echo "</div>";
+
+                    //move question
+                    //delete question
                     echo "<div>";
+                    echo "<form action=\"";
+                    echo $_SERVER['PHP_SELF'];
+                    echo "\" method=\"POST\">";
+                    try {
+                        $query = 'SELECT * FROM Subject s 
+                        INNER JOIN Question q ON q.fk_pk_subject_id = s.pk_subject_id
+                        WHERE `subject` = ?;';
+                        $statement = $db_connection->prepare($query);
+                        echo '<select name="question">';
+                        if ($statement->execute([$_SESSION['subject']])) {
+                            while ($row = $statement->fetch()) {
+                                echo "<option>" . $row['question'] . "</option>";
+                            }
+                        }
+                        echo "</select>";
+
+                        $query = 'SELECT * FROM `Subject`;';
+                        $statement = $db_connection->prepare($query);
+                        echo '<select name="new_subject">';
+                        if ($statement->execute()) {
+                            while ($row = $statement->fetch()) {
+                                if ($_SESSION['subject'] == $row['subject']) {
+                                    echo "<option selected>" . $row['subject'] . "</option>";
+                                } else {
+                                    echo "<option>" . $row['subject'] . "</option>";
+                                }
+                            }
+                        }
+                        echo "</select>";
+
+                        echo "<input type=\"submit\" name=\"movequestion\" value=\"Move\">";
+                    } catch (PDOException $error) {
+                        die('Verbindung fehlgeschlagen: ' . $error->getMessage());
+                    }
+                    echo "</form>";
+                    echo "<div>";
+
+
+                    echo "</div>";
 
 
                 }
