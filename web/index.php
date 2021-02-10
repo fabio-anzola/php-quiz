@@ -128,13 +128,8 @@ if (isset($_POST['subject'])) {
                 echo "<br>";
             }
 
-            //confirm button
-            echo "<input type=\"checkbox\" name=\"confirmation\" value=\"I confirm\">";
-            echo "<label for=\"confirmation\">" .
-                "I compeleted this Quiz on my own without any help or materials." . "</label><br>";
-
             //reset and submit button
-            echo "<input type=\"submit\" value=\"Submit\">";
+            echo "<input type=\"submit\" name=\"submit\" value=\"Submit\">";
             echo "<input type=\"reset\" value=\"Reset\">";
 
             //close form
@@ -149,27 +144,15 @@ if (isset($_POST['subject'])) {
     <?php
     //Once answers were submited
     //Show result
-    if (isset($_POST['confirmation'])) {
+    if (isset($_POST['submit'])) {
         $selected_subject = $_SESSION['subject'];
 
         //start div
         echo "<div>";
 
-        $nruseranswers = 0;
-        $nranswers = 0;
-        $score = 0;
+        $nrofincorrect = 0;
 
         try {
-            //get nr of correct answers
-            $query = 'SELECT COUNT(a.pk_answer_id) AS "nranswers" FROM Question q
-            INNER JOIN Subject s ON q.fk_pk_subject_id = s.pk_subject_id
-            INNER JOIN Answer a ON a.fk_pk_question_id = q.pk_question_id 
-            WHERE s.subject = ?;';
-            $statement = $db_connection->prepare($query);
-            if ($statement->execute([$selected_subject])) {
-                $nranswers = $statement->fetch()['nranswers'];
-            }
-  
             //get nr of questions of subject
             $query = 'SELECT COUNT(`pk_question_id`) AS "nrofquestions" FROM Question q 
             INNER JOIN Subject s ON q.fk_pk_subject_id = s.pk_subject_id
@@ -204,6 +187,8 @@ if (isset($_POST['subject'])) {
                     echo $row['question'] . "<br>";
                 }
 
+                $incorrect = false;
+
                 //print all answers for question
                 $query = 'SELECT question, answer, correct FROM Question q 
                 INNER JOIN Subject s ON q.fk_pk_subject_id = s.pk_subject_id
@@ -216,30 +201,26 @@ if (isset($_POST['subject'])) {
                         if (array_key_exists("question$i&answer$rownr", $_POST)) {
                             //user ticked and is correct -> good
                             if ($row['correct']) {
-                                $nruseranswers++;
-                                $score++;
                                 echo "<input disabled checked class=\"correct\" type=\"checkbox\" name=\"question$i.answer$rownr\" value=\"" . $row['answer'] . "\">";
                                 echo "<label class=\"correct\" for=\"question$i.answer$rownr\">" . $row['answer'] . "</label><br>";
                             }
                             //user ticked but is wrong -> bad
                             else {
-                                $score--;
+                                $incorrect = true;
                                 echo "<input disabled checked class=\"wrong\" type=\"checkbox\" name=\"question$i.answer$rownr\" value=\"" . $row['answer'] . "\">";
                                 echo "<label class=\"wrong\" for=\"question$i.answer$rownr\">" . $row['answer'] . "</label><br>";
                             }
                         } else {
                             //user did not tick but is correct -> bad
                             if ($row['correct']) {
-                                $score--;
-                                echo "<input disabled class=\"wrong\" type=\"checkbox\" name=\"question$i.answer$rownr\" value=\"" . $row['answer'] . "\">";
-                                echo "<label class=\"wrong\" for=\"question$i.answer$rownr\">" . $row['answer'] . "</label><br>";
+                                $incorrect = true;
+                                echo "<input disabled class=\"correct\" type=\"checkbox\" name=\"question$i.answer$rownr\" value=\"" . $row['answer'] . "\">";
+                                echo "<label class=\"correct\" for=\"question$i.answer$rownr\">" . $row['answer'] . "</label><br>";
                             }
                             //user did not tick and is wrong -> good
                             else {
-                                $nruseranswers++;
-                                $score++;
-                                echo "<input disabled class=\"correct\" type=\"checkbox\" name=\"question$i.answer$rownr\" value=\"" . $row['answer'] . "\">";
-                                echo "<label class=\"correct\" for=\"question$i.answer$rownr\">" . $row['answer'] . "</label><br>";
+                                echo "<input disabled class=\"wrong\" type=\"checkbox\" name=\"question$i.answer$rownr\" value=\"" . $row['answer'] . "\">";
+                                echo "<label class=\"wrong\" for=\"question$i.answer$rownr\">" . $row['answer'] . "</label><br>";
                             }
                         }
                         $rownr++;
@@ -247,12 +228,17 @@ if (isset($_POST['subject'])) {
                 }
                 //new line for next question
                 echo "<br>";
+                if ($incorrect == true) {
+                    $nrofincorrect++;
+                }
             }
-            echo "You got $nruseranswers from $nranswers answers correct! Good job! <br>";
-            if ((($score * 20)/($nranswers * 20)) * 100 < 0) {
+            //calculate
+            echo "You got " . ($nrofquestions - $nrofincorrect) . " of $nrofquestions questions correct! Good job! <br>";
+
+            if (((($nrofquestions - $nrofincorrect) / $nrofquestions) * 100) < 0) {
                 $score = 0;
             } else {
-                $score = (($score * 20)/($nranswers * 20)) * 100;
+                $score = ((($nrofquestions - $nrofincorrect) / $nrofquestions) * 100);
             }
             echo "You got a score of $score%";
             //end div
