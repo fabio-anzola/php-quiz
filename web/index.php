@@ -30,12 +30,27 @@ if (isset($_POST['subject'])) {
                 $query = 'SELECT * FROM `Subject`;';
                 $statement = $db_connection->prepare($query);
                 echo '<select name="subject">';
+                echo "<option>---Please select---</option>";
                 if ($statement->execute()) {
                     while ($row = $statement->fetch()) {
-                        if ($_SESSION['subject'] == $row['subject']) {
-                            echo "<option selected>" . $row['subject'] . "</option>";
-                        } else {
-                            echo "<option>" . $row['subject'] . "</option>";
+                        if (!isset($row['fk_pk_subject_id'])) {
+                            if ($_SESSION['subject'] == $row['subject']) {
+                                echo "<option selected value=\"" . $row['subject'] . "\">" . $row['subject'] . "</option>";
+                            } else {
+                                echo "<option value=\"" . $row['subject'] . "\">" . $row['subject'] . "</option>";
+                            }
+                        }
+
+                        $subquery = 'SELECT * FROM `Subject` WHERE `fk_pk_subject_id` = ?;';
+                        $substatement = $db_connection->prepare($subquery);
+                        if ($substatement->execute([$row['pk_subject_id']])) {
+                            while ($subrow = $substatement->fetch()) {
+                                if ($_SESSION['subject'] == ($subrow['subject'])) {
+                                    echo "<option selected value=\"" . $subrow['subject'] . "\">" . "&nbsp;&nbsp;&nbsp;&nbsp;" . $subrow['subject'] . "</option>";
+                                } else {
+                                    echo "<option value=\"" . $subrow['subject'] . "\">" . "&nbsp;&nbsp;&nbsp;&nbsp;" . $subrow['subject'] . "</option>";
+                                }
+                            }
                         }
                     }
                 }
