@@ -142,6 +142,7 @@ if (isset($_POST['subject'])) {
 
         $nruseranswers = 0;
         $nranswers = 0;
+        $score = 0;
 
         try {
             //get nr of correct answers
@@ -201,23 +202,27 @@ if (isset($_POST['subject'])) {
                             //user ticked and is correct -> good
                             if ($row['correct']) {
                                 $nruseranswers++;
+                                $score++;
                                 echo "<input disabled checked class=\"correct\" type=\"checkbox\" name=\"question$i.answer$rownr\" value=\"" . $row['answer'] . "\">";
                                 echo "<label class=\"correct\" for=\"question$i.answer$rownr\">" . $row['answer'] . "</label><br>";
                             }
                             //user ticked but is wrong -> bad
                             else {
+                                $score--;
                                 echo "<input disabled checked class=\"wrong\" type=\"checkbox\" name=\"question$i.answer$rownr\" value=\"" . $row['answer'] . "\">";
                                 echo "<label class=\"wrong\" for=\"question$i.answer$rownr\">" . $row['answer'] . "</label><br>";
                             }
                         } else {
                             //user did not tick but is correct -> bad
                             if ($row['correct']) {
+                                $score--;
                                 echo "<input disabled class=\"wrong\" type=\"checkbox\" name=\"question$i.answer$rownr\" value=\"" . $row['answer'] . "\">";
                                 echo "<label class=\"wrong\" for=\"question$i.answer$rownr\">" . $row['answer'] . "</label><br>";
                             }
                             //user did not tick and is wrong -> good
                             else {
                                 $nruseranswers++;
+                                $score++;
                                 echo "<input disabled class=\"correct\" type=\"checkbox\" name=\"question$i.answer$rownr\" value=\"" . $row['answer'] . "\">";
                                 echo "<label class=\"correct\" for=\"question$i.answer$rownr\">" . $row['answer'] . "</label><br>";
                             }
@@ -228,8 +233,13 @@ if (isset($_POST['subject'])) {
                 //new line for next question
                 echo "<br>";
             }
-            echo "You got $nruseranswers from $nranswers answers correct! Good job!";
-
+            echo "You got $nruseranswers from $nranswers answers correct! Good job! <br>";
+            if ((($score * 20)/($nranswers * 20)) * 100 < 0) {
+                $score = 0;
+            } else {
+                $score = (($score * 20)/($nranswers * 20)) * 100;
+            }
+            echo "You got a score of $score%";
             //end div
             echo "</div>";
         } catch (PDOException $error) {
