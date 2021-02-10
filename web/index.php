@@ -119,7 +119,7 @@ if (isset($_POST['subject'])) {
                 if ($statement->execute([$selected_subject, $pks[$i]])) {
                     $rownr = 1;
                     while ($row = $statement->fetch()) {
-                        echo "<input type=\"checkbox\" name=\"question$i&answer$rownr\" value=\"" . $row['answer'] . "\">";
+                        echo "<input type=\"checkbox\" name=\"question$i&answer$rownr\" id=\"question$i&answer$rownr\" value=\"" . $row['answer'] . "\">";
                         echo "<label for=\"question$i&answer$rownr\">" . $row['answer'] . "</label><br>";
                         $rownr++;
                     }
