@@ -174,7 +174,7 @@ if (isset($_POST['choosesubject'])) {
                 echo ' method="POST">';
                 echo '<button type="submit" name="logout" value="logmeout">Logout</button>';
                 echo '</form>';
-                echo '<h1>Adminpanel</h1>';
+                echo "<h1><a href=\"#\">"."Adminpanel"."</a></h1>";
                 echo '<img src="https://eu.ui-avatars.com/api/?background=random&name=' . $_SESSION['uname'] . '" alt="Avatar" class="smallavatar">';
                 echo '</div>';
 
@@ -386,6 +386,10 @@ if (isset($_POST['choosesubject'])) {
         }
     }
     ?>
+
+    <footer>
+        <a href="../index.php">Home</a>
+    </footer>
 
     <script src="" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
