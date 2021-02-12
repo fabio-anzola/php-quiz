@@ -9,8 +9,3 @@ h1 {
 .wrong {
     color: red;
 }
-
-footer {
-    display: flex;
-    justify-content: space-around;
-}

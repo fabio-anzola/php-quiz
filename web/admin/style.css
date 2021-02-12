@@ -7,8 +7,3 @@ h1 > a {
     text-decoration: none;
     color: black;
 }
-
-footer {
-    display: flex;
-    justify-content: space-around;
-}

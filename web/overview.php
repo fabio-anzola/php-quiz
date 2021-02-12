@@ -16,11 +16,16 @@ if (isset($_POST['subject'])) {
     <meta name="description" content="A quiz made with php">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="navigation.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
 </head>
 
 <body>
     <h1> Anzola - Quiz </h1>
+
+    <?php
+    include "header.php";
+    ?>
 
     <table class="table">
         <thead>
@@ -56,9 +61,6 @@ if (isset($_POST['subject'])) {
         </tbody>
     </table>
 
-    <?php
-    include "footer.php";
-    ?>
     <script src="" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
 </body>
