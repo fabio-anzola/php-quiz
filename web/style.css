@@ -1,3 +1,8 @@
+body {
+    padding-left: 1em;
+    padding-right: 1em;
+}
+
 h1 {
     text-align: center;
 }
@@ -8,4 +13,8 @@ h1 {
 
 .wrong {
     color: red;
+}
+
+label {
+    margin-left: 10px;
 }
