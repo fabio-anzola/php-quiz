@@ -15,6 +15,6 @@ h1 {
     color: red;
 }
 
-label {
-    margin-left: 10px;
+label:not(.nomargin){
+    padding-left: 10px;
 }

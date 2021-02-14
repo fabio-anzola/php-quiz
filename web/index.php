@@ -29,7 +29,7 @@ if (isset($_POST['subject'])) {
 
     <div>
         <form action='<?php echo $_SERVER['PHP_SELF']; ?>' method='POST'>
-            <label for="subject">Select a Subject:</label>
+            <label class="nomargin" for="subject">Select a Subject:</label>
             <?php
             try {
                 $query = 'SELECT * FROM `Subject`;';
